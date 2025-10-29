@@ -103,7 +103,7 @@ function App() {
         performanceType: formData.performanceType,
         paymentMethod,
         timestamp: new Date().toISOString(),
-        paid: paymentMethod === 'cash' ? true : false // Mark cash as paid, others need manual verification
+        paid: paymentMethod === 'cash' // Mark cash as paid, others need manual verification
       };
 
       const docRef = await addDoc(collection(db, 'bookings'), booking);
