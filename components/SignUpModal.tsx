@@ -94,6 +94,20 @@ export default function SignUpModal({ block, onClose }: SignUpModalProps) {
   const redirectToPayment = (method: PaymentMethod) => {
     const memo = `Hell Is Hot - ${formData.name} - ${formData.performanceType}`;
 
+    /**
+     * Payment Redirection using Deep Links
+     * 
+     * Security Note: This implementation uses deep links to payment apps.
+     * For production use, consider:
+     * - Implementing proper payment gateway APIs (Stripe, Square, etc.)
+     * - Using webhooks to verify payment completion
+     * - Adding server-side payment verification
+     * - Implementing fraud detection
+     * 
+     * The current implementation relies on users completing payment honestly
+     * and staff verification for cash payments.
+     */
+
     switch (method) {
       case 'Venmo':
         // Venmo deep link

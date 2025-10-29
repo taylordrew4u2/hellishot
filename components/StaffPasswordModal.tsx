@@ -3,6 +3,17 @@
 import { useState } from 'react';
 import { verifyStaffPassword } from '@/lib/db';
 
+/**
+ * Staff Password Modal Component
+ * 
+ * Security Note: Password is verified by reading from Firestore's eventConfig collection.
+ * This is a simple verification mechanism suitable for small events. For production use
+ * with sensitive data, consider:
+ * - Implementing password hashing via Firebase Cloud Functions
+ * - Adding rate limiting to prevent brute force attacks
+ * - Using proper authentication tokens instead of passwords
+ */
+
 interface StaffPasswordModalProps {
   onSuccess: () => void;
   onClose: () => void;

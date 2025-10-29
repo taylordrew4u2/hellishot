@@ -175,13 +175,42 @@ The app can be deployed to any platform that supports Next.js:
 
 ## Security Considerations
 
-- Firebase rules should be configured to:
-  - Allow read access to timeBlocks and bookings
-  - Restrict write access to authenticated users for admin functions
-  - Validate booking data on write
-- Environment variables are properly scoped with NEXT_PUBLIC_ prefix
-- Admin routes should implement additional authentication checks
-- Staff password is stored in Firestore (consider hashing for production)
+### Firebase Security Rules
+The included `firestore.rules` file provides basic security:
+- Read access to timeBlocks and bookings for all users
+- Booking creation allowed with validation of required fields and data types
+- Write access to admin functions restricted to authenticated users only
+- Deploy these rules to your Firebase project
+
+### Staff Password Management
+- Staff password is stored in Firestore (in the `eventConfig` collection)
+- Password is verified server-side via Firestore read operations
+- **Important**: The password is stored in plain text. For production, consider:
+  - Using Firebase Cloud Functions to hash and verify passwords
+  - Implementing rate limiting on password verification attempts
+  - Setting password expiration after each event
+
+### Payment Information
+- Payment app usernames (Venmo/CashApp) are client-side environment variables
+- These are publicly visible in the browser
+- **Important**: 
+  - Enable payment verification in your Venmo/Cash App accounts
+  - Monitor payments for unauthorized transactions
+  - Consider implementing webhook verification for automatic payment confirmation
+  - For production, use proper payment gateway APIs instead of deep links
+
+### Authentication
+- Admin dashboard requires Firebase Authentication (email/password)
+- Create a strong admin password in Firebase Console
+- Consider enabling 2FA for admin accounts
+- Use Firebase security rules to restrict admin operations
+
+### General Best Practices
+- Never commit `.env.local` to version control
+- Rotate Firebase credentials if compromised
+- Monitor Firestore usage and costs
+- Implement rate limiting via Firebase security rules
+- Regular security audits of Firestore rules and authentication
 
 ## License
 
