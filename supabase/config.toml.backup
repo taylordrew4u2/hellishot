@@ -1,0 +1,13 @@
+# Supabase CLI project configuration
+# This repo tracks schema and policies via migrations under supabase/migrations.
+# For cloud usage, link this project to your Supabase project ref and push migrations.
+
+project_id = "ercjivtwluyjoqxhjdie"
+
+[modules]
+# Track the public schema by default
+schema = ["public"]
+
+[migrations]
+# Directory where migration files are stored
+path = "supabase/migrations"

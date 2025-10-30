@@ -1,20 +1,26 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
-import { bookings } from './routes/bookings';
-import { admin } from './routes/admin';
-import { stripe } from './lib/stripe';
-import { supabaseAdmin } from './lib/supabase';
+import { bookings } from './routes/bookings.js';
+import { admin } from './routes/admin.js';
+import { tarot } from './routes/tarot.js';
+import { stripe } from './lib/stripe.js';
+import { supabaseAdmin } from './lib/supabase.js';
 import { z } from 'zod';
 const app = express();
 app.use(cors());
 app.use(express.json({ verify: (req, _res, buf) => { req.rawBody = buf; } }));
 const limiter = rateLimit({ windowMs: 60 * 1000, limit: 60 });
 app.use(limiter);
+// Root
+app.get('/', (_req, res) => res.json({ name: 'Hell Is Hot API', status: 'running', version: '1.0.0' }));
 // Health
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 // Booking routes
 app.use('/api/bookings', bookings);
+// Tarot routes
+app.use('/api/tarot', tarot);
 // Admin (no auth wired yet; wire Supabase Auth/JWT in production)
 app.use('/api/admin', admin);
 // Stripe payment intent (Apple Pay via Payment Request)

@@ -9,7 +9,8 @@ export const bookings = Router()
 const createSchema = z.object({
     block_id: z.string(),
     user_name: z.string().min(1).max(80),
-    performance_type: z.enum(['Comedy', 'Music', 'Dance', 'Poetry', 'Karaoke']),
+    performance_type: z.enum(['Comedy', 'Karaoke', 'Other']),
+    song_info: z.string().optional(),
     wants_video: z.boolean().optional().default(false),
     payment_method: z.enum(['venmo', 'cashapp', 'applepay', 'cash']),
     device_id: z.string().min(8),
@@ -19,7 +20,7 @@ const createSchema = z.object({
 bookings.post('/create', async (req: Request, res: Response) => {
     const body = createSchema.safeParse(req.body)
     if (!body.success) { return res.status(400).send('Invalid input') }
-    const { block_id, user_name, performance_type, wants_video, payment_method, device_id } = body.data
+    const { block_id, user_name, performance_type, song_info, wants_video, payment_method, device_id } = body.data
 
     // Fetch active event and block
     const { data: event } = await supabaseAdmin.from('events').select('*').eq('active', true).single()
@@ -31,9 +32,10 @@ bookings.post('/create', async (req: Request, res: Response) => {
 
     const result = await assignSlotAndCreateBooking({
         event_id: event.id,
-        block,
+        block: { id: block.id, capacity: block.capacity, starts_at: block.starts_at },
         user_name,
         performance_type,
+        song_info: song_info || null,
         wants_video: !!wants_video,
         payment_method,
         payment_status: payment_status as any,
@@ -49,7 +51,8 @@ bookings.post('/create', async (req: Request, res: Response) => {
 const cashSchema = z.object({
     block_id: z.string(),
     user_name: z.string().min(1).max(80),
-    performance_type: z.enum(['Comedy', 'Music', 'Dance', 'Poetry', 'Karaoke']),
+    performance_type: z.enum(['Comedy', 'Karaoke', 'Other']),
+    song_info: z.string().optional(),
     wants_video: z.boolean().optional().default(false),
     staff_password: z.string().min(1),
     device_id: z.string().min(8)
@@ -58,7 +61,7 @@ const cashSchema = z.object({
 bookings.post('/cash', async (req: Request, res: Response) => {
     const body = cashSchema.safeParse(req.body)
     if (!body.success) { return res.status(400).send('Invalid input') }
-    const { block_id, user_name, performance_type, wants_video, staff_password, device_id } = body.data
+    const { block_id, user_name, performance_type, song_info, wants_video, staff_password, device_id } = body.data
 
     const { data: event } = await supabaseAdmin.from('events').select('*').eq('active', true).single()
     if (!event) { return res.status(400).send('No active event') }
@@ -71,9 +74,10 @@ bookings.post('/cash', async (req: Request, res: Response) => {
 
     const result = await assignSlotAndCreateBooking({
         event_id: event.id,
-        block,
+        block: { id: block.id, capacity: block.capacity, starts_at: block.starts_at },
         user_name,
         performance_type,
+        song_info: song_info || null,
         wants_video: !!wants_video,
         payment_method: 'cash',
         payment_status: 'paid',

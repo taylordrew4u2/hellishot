@@ -1,8 +1,10 @@
+import 'dotenv/config'
 import express, { Request, Response } from 'express'
 import cors from 'cors'
 import rateLimit from 'express-rate-limit'
 import { bookings } from './routes/bookings.js'
 import { admin } from './routes/admin.js'
+import { tarot } from './routes/tarot.js'
 import { stripe } from './lib/stripe.js'
 import { supabaseAdmin } from './lib/supabase.js'
 import { z } from 'zod'
@@ -14,11 +16,17 @@ app.use(express.json({ verify: (req: Request & { rawBody?: Buffer }, _res: Respo
 const limiter = rateLimit({ windowMs: 60 * 1000, limit: 60 })
 app.use(limiter)
 
+// Root
+app.get('/', (_req: Request, res: Response) => res.json({ name: 'Hell Is Hot API', status: 'running', version: '1.0.0' }))
+
 // Health
 app.get('/api/health', (_req: Request, res: Response) => res.json({ ok: true }))
 
 // Booking routes
 app.use('/api/bookings', bookings)
+
+// Tarot routes
+app.use('/api/tarot', tarot)
 
 // Admin (no auth wired yet; wire Supabase Auth/JWT in production)
 app.use('/api/admin', admin)

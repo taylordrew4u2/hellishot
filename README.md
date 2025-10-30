@@ -106,6 +106,58 @@ Security notes (MVP):
 - Staff password is stored hashed in DB (bcrypt).
 - API has simple rate limiting (60 req/min/IP).
 
+## Local Supabase + VS Code Extension
+
+The Supabase VS Code extension expects a local Supabase stack running via Docker.
+
+Prereqs (macOS):
+- Install Docker Desktop and keep it running.
+- Install Supabase CLI:
+
+```bash
+brew install supabase/tap/supabase
+supabase --version
+```
+
+Initialize, link, pull, and start locally:
+
+```bash
+# In your project root
+supabase init              # creates/validates supabase/ config locally
+supabase login             # opens browser to authenticate
+supabase link --project-ref ercjivtwluyjoqxhjdie
+supabase db pull           # sync local schema/policies from cloud
+supabase start             # start local stack (Postgres, REST, Auth, Studio)
+```
+
+After `supabase start`, the CLI prints local URLs and keys. Typical defaults:
+- REST/API: http://localhost:54321
+- Studio: http://localhost:54323
+- Postgres: localhost:54322
+- Local anon/service_role keys: printed in the terminal
+
+Point the web app to the local stack (optional):
+
+```
+# web/.env.local
+VITE_SUPABASE_URL=http://localhost:54321
+VITE_SUPABASE_ANON_KEY=<local anon key from `supabase start`>
+```
+
+Useful commands:
+
+```bash
+supabase status            # check local services
+supabase stop              # stop local services
+supabase db reset          # drop & recreate local DB
+supabase migration new add_feature_x
+supabase db push           # apply migrations to Cloud
+```
+
+Notes:
+- You don’t need `supabase start` for Cloud-only workflows (Fly.io deploys use the cloud DB). Use `link` + `db push` for migrations.
+- This repo already includes `supabase/config.toml` and an initial migration in `supabase/migrations/` to track schema and policies.
+
 ## Deployment to Fly.io
 
 Both API and web are ready to deploy on Fly.io with Dockerfiles and configs included.

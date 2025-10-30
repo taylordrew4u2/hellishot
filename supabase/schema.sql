@@ -65,3 +65,34 @@ as $$
   group by b.id
   order by b.position
 $$;
+
+-- Enable Row Level Security and add public read policies for the app
+-- Note: Supabase enables RLS by default on new tables, but these commands are idempotent.
+alter table public.events enable row level security;
+alter table public.blocks enable row level security;
+alter table public.bookings enable row level security;
+
+-- Allow anyone (anon) to read the active event
+do $$ begin
+  create policy "Public read active events" on public.events
+    for select to anon
+    using (active = true);
+exception when duplicate_object then null; end $$;
+
+-- Allow anyone (anon) to read blocks that belong to the active event
+do $$ begin
+  create policy "Public read blocks for active events" on public.blocks
+    for select to anon
+    using (exists (select 1 from public.events e where e.id = event_id and e.active = true));
+exception when duplicate_object then null; end $$;
+
+-- Allow anyone (anon) to read bookings for the active event (needed for realtime fills)
+do $$ begin
+  create policy "Public read bookings for active events" on public.bookings
+    for select to anon
+    using (exists (select 1 from public.events e where e.id = event_id and e.active = true));
+exception when duplicate_object then null; end $$;
+
+-- supabase migration new update_something
+cd /workspaces/hellishot
+supabase link --project-ref ercjivtwluyjoqxhjdie
