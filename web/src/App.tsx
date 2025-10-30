@@ -183,15 +183,33 @@ function Schedule() {
         setDialogOpen(true)
     }
 
-    if (loading || !summary) {
-        return <div className="container"><div className="muted">Loading schedule…</div>{error && <div style={{ color: 'var(--accent)', marginTop: 12 }}>{error}</div>}</div>
+    if (loading) {
+        return <div className="container"><div className="muted">Loading schedule…</div></div>
+    }
+
+    if (error || !summary) {
+        return (
+            <div className="container">
+                <div style={{ color: 'var(--accent)', marginTop: 12 }}>
+                    {error || 'No active event found'}
+                </div>
+                <div className="space" />
+                <div className="muted">Please contact an administrator to set up the event.</div>
+            </div>
+        )
     }
 
     // Get the single performance queue block
     const performanceBlock = summary.blocks[0]
 
     if (!performanceBlock) {
-        return <div className="container"><div className="muted">No performance blocks available</div></div>
+        return (
+            <div className="container">
+                <div style={{ color: 'var(--accent)', marginTop: 12 }}>No performance blocks available</div>
+                <div className="space" />
+                <div className="muted">Please contact an administrator to configure the event blocks.</div>
+            </div>
+        )
     }
 
     const full = performanceBlock.filled >= performanceBlock.capacity
@@ -1072,9 +1090,14 @@ function Admin() {
                                             <td style={{ padding: 12 }}>
                                                 <button className="btn" style={{ padding: '4px 12px', fontSize: 12 }} onClick={async () => {
                                                     if (confirm('Remove this booking?')) {
-                                                        await fetch('/api/admin/bookings/remove', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: b.id }) })
-                                                        loadData()
-                                                        toast.success('Booking removed')
+                                                        const res = await fetch('/api/admin/bookings/remove', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: b.id }) })
+                                                        if (res.ok) {
+                                                            await loadData()
+                                                            toast.success('Booking removed')
+                                                        } else {
+                                                            const error = await res.text()
+                                                            toast.error(`Failed to remove booking: ${error}`)
+                                                        }
                                                     }
                                                 }}>Remove</button>
                                             </td>
@@ -1111,6 +1134,41 @@ function Admin() {
                                     <div><strong>Status:</strong> {event.active ? 'Active' : 'Inactive'}</div>
                                 </div>
                             )}
+                            {!event && (
+                                <div className="muted">No active event configured</div>
+                            )}
+                        </div>
+                        <div className="space" />
+                        <div className="card">
+                            <h3>⚠️ Danger Zone</h3>
+                            <div className="muted" style={{ marginBottom: 12 }}>These actions are permanent and cannot be undone</div>
+                            <div className="row" style={{ gap: 12 }}>
+                                <button className="btn" disabled={loading} onClick={async () => {
+                                    if (!confirm('Clear all events, blocks, and bookings? This cannot be undone!')) return
+                                    setLoading(true)
+                                    const res = await fetch('/api/admin/clear-all', { method: 'POST' })
+                                    setLoading(false)
+                                    if (res.ok) {
+                                        toast.success('All data cleared')
+                                        await loadData()
+                                    } else {
+                                        toast.error(await res.text())
+                                    }
+                                }}>Clear All Data</button>
+                                <button className="btn primary" disabled={loading} onClick={async () => {
+                                    if (!confirm('Create today\'s event with 4 blocks?')) return
+                                    setLoading(true)
+                                    const res = await fetch('/api/admin/seed-event', { method: 'POST' })
+                                    setLoading(false)
+                                    if (res.ok) {
+                                        toast.success('Event created successfully')
+                                        await loadData()
+                                    } else {
+                                        const error = await res.text()
+                                        toast.error(`Failed to create event: ${error}`)
+                                    }
+                                }}>Seed Today's Event</button>
+                            </div>
                         </div>
                     </>
                 )}
