@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Bookings collection
+    match /bookings/{booking} {
+      // Anyone can read bookings (for real-time availability)
+      allow read: if true;
+      
+      // Anyone can create a booking with valid data
+      allow create: if request.resource.data.name is string &&
+                      request.resource.data.name.size() > 0 &&
+                      request.resource.data.performanceType is string &&
+                      request.resource.data.performanceType.size() > 0 &&
+                      request.resource.data.timeBlockId is int &&
+                      request.resource.data.timeBlockId >= 1 &&
+                      request.resource.data.timeBlockId <= 4 &&
+                      request.resource.data.paymentMethod is string &&
+                      request.resource.data.timestamp is string &&
+                      request.resource.data.paid is bool;
+      
+      // Prevent updates and deletes to maintain data integrity
+      allow update, delete: if false;
+    }
+  }
+}
