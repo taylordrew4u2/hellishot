@@ -1156,7 +1156,7 @@ function Admin() {
                                     }
                                 }}>Clear All Data</button>
                                 <button className="btn primary" disabled={loading} onClick={async () => {
-                                    if (!confirm('Create today\'s event with 4 blocks?')) return
+                                    if (!confirm("Create today's event with 4 blocks?")) return
                                     setLoading(true)
                                     const res = await fetch('/api/admin/seed-event', { method: 'POST' })
                                     setLoading(false)
